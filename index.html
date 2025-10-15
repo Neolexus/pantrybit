@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Pantry Cook | Instant Timed Cook Plan from Your Pantry</title>
+  <meta name="description" content="Pantry Cook instantly creates a prioritized, parallelized cook plan from your ingredients. No login. All offline. Paste or scan your pantry, get a step-by-step kitchen schedule, shopping gaps, and a printable checklist.">
+  <link rel="canonical" href="https://your-github-username.github.io/pantry-cook/">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="icon" href="pantry-cook-logo.svg">
+  <style>
+    :root {
+      --primary: #ff9f43;      /* Soft orange */
+      --accent: #ff7043;       /* Slightly deeper orange */
+      --background: #fff;
+      --surface: #fff7f0;      /* Subtle off-white */
+      --text: #292929;
+      --muted: #979797;
+      --border: #ffe3c1;
+      --radius: 18px;
+      --shadow: 0 2px 32px 0 rgba(255,159,67,0.13);
+      --header-height: 72px;
+      --max-width: 890px;
+      --hero-image: url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1400&q=80');
+      --hero-overlay: rgba(255,255,255,0.91);
+      --glow: 0 0 24px 2px #ffe0b2, 0 0 80px 10px #fff7f0;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', Arial, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      font-size: 18px;
+      line-height: 1.65;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    /* Header: logo and site name top left */
+    .site-header {
+      width: 100vw;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      height: var(--header-height);
+      display: flex;
+      align-items: center;
+      padding: 0 2.1rem;
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+    .site-brand {
+      display: flex;
+      align-items: center;
+      gap: 1.05rem;
+    }
+    .site-logo {
+      width: 47px;
+      height: 47px;
+      border-radius: 50%;
+      background: #fff4e6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px #ffb26b26;
+    }
+    .site-logo svg {
+      width: 29px;
+      height: 29px;
+      display: block;
+      color: var(--primary);
+    }
+    .site-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.02em;
+      margin: 0;
+      text-shadow: 0 1px 0 #fffbe2, 0 2px 6px #ffb26b33;
+    }
+
+    /* Hero section with background food image */
+    .hero-bg {
+      width: 100vw;
+      min-height: 380px;
+      background: var(--hero-image) center/cover no-repeat;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.9rem;
+      overflow: hidden;
+    }
+    .hero-overlay {
+      background: var(--hero-overlay);
+      border-radius: 32px;
+      padding: 2.7rem 2.4rem 2.15rem 2.4rem;
+      box-shadow: var(--glow), 0 8px 36px #ffb26b13;
+      max-width: 600px;
+      margin: 3rem 0 2rem 0;
+      text-align: center;
+      position: relative;
+      animation: glow-fade 2.4s infinite alternate cubic-bezier(.44,.91,.49,1.18);
+      transition: box-shadow 0.35s;
+      border: 1.5px solid #ffd8b3;
+    }
+    @keyframes glow-fade {
+      0% { box-shadow: var(--glow), 0 8px 36px #ffb26b13; }
+      100% { box-shadow: 0 0 42px 4px #ffdcb2, 0 8px 36px #ffb26b13; }
+    }
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.45rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 0;
+      letter-spacing: 0.03em;
+      text-shadow: 0 2px 6px #fff6e25a;
+    }
+    .hero-subtitle {
+      font-family: 'Inter', Arial, sans-serif;
+      font-size: 1.23rem;
+      color: var(--muted);
+      margin: 0.7rem 0 0.3rem 0;
+      max-width: 34rem;
+      line-height: 1.6;
+    }
+
+    /* Features */
+    .features {
+      max-width: var(--max-width);
+      margin: 0 auto 1.8rem auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2.2rem 1.6rem;
+      justify-content: center;
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 1.5rem;
+    }
+    .feature {
+      flex: 1 1 230px;
+      min-width: 220px;
+      max-width: 320px;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 1px 4px #ffe0b229;
+      padding: 1.2rem 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .feature h3 {
+      font-size: 1.16rem;
+      color: var(--primary);
+      margin: 0 0 0.25rem 0;
+      font-weight: 700;
+      font-family: 'Playfair Display', serif;
+    }
+    .feature p {
+      font-size: 1rem;
+      color: var(--text);
+      font-family: 'Inter', Arial, sans-serif;
+      margin: 0;
+    }
+
+    /* Tool Card: End-to-end, glowing, premium look */
+    .tool-section-card {
+      width: 100vw;
+      max-width: none;
+      background: var(--surface);
+      box-shadow: 0 0 64px 2px #ffb26b1a, 0 2px 16px 0 #ffb26b2a;
+      border-radius: 0;
+      margin: 0 0 2.2rem 0;
+      padding: 3.2rem 0;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+      border-top: 2.5px solid #ffd8b3;
+      border-bottom: 2.5px solid #ffd8b3;
+      animation: card-glow-fade 2s infinite alternate cubic-bezier(.44,.91,.49,1.18);
+      overflow-x: auto;
+    }
+    @keyframes card-glow-fade {
+      0% { box-shadow: 0 0 64px 2px #ffe0b2, 0 2px 16px 0 #ffb26b2a; }
+      100% { box-shadow: 0 0 80px 8px #ffe0b2, 0 2px 16px 0 #ffb26b3a; }
+    }
+    .tool-section {
+      width: 100%;
+      max-width: 700px;
+      background: #fff;
+      box-shadow: 0 4px 32px 0 #ffb26b1a;
+      border-radius: 24px;
+      padding: 2.3rem 2rem 2rem 2rem;
+      margin: 0 auto;
+    }
+    .tool-section h2 {
+      color: var(--accent);
+      margin-top: 0;
+      font-size: 1.5rem;
+      font-weight: 700;
+      font-family: 'Playfair Display', serif;
+    }
+    label, .slider-group label, .ocr-label {
+      font-family: 'Inter', Arial, sans-serif;
+      color: var(--text);
+    }
+    textarea, input[type="text"] {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: border 0.2s;
+    }
+    textarea:focus, input[type="text"]:focus {
+      border: 1.5px solid var(--primary);
+      outline: none;
+    }
+    button, .button-link {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 0.7rem 1.3rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 12px #ffd8b3;
+      transition: background 0.18s, box-shadow 0.22s;
+      text-decoration: none;
+      display: inline-block;
+      font-family: 'Inter', Arial, sans-serif;
+    }
+    button:hover, .button-link:hover {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 2px 20px #ffb26b39;
+    }
+    .ocr-label {
+      background: #fff7f0;
+      border: 1px dashed var(--primary);
+      color: var(--accent);
+      border-radius: 7px;
+      padding: 0.45rem 1.1rem;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+      display: inline-block;
+    }
+    .ocr-label:hover {
+      background: #ffedd7;
+    }
+    .output-section {
+      margin-top: 1.3rem;
+      background: var(--surface);
+      border-radius: 10px;
+      padding: 1.2rem 1rem 1.2rem 1rem;
+      box-shadow: 0 1px 6px #ffe0b229;
+    }
+    .output-section h3 {
+      margin-top: 0;
+      color: var(--primary);
+      font-size: 1.15rem;
+    }
+    .output-section pre {
+      background: #fff9f2;
+      border-left: 3px solid var(--primary);
+      padding: 0.9rem 1rem;
+      font-size: 1.02rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .output-actions {
+      margin-top: 1rem;
+      display: flex;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+    }
+    .output-actions button {
+      background: var(--accent);
+      color: #fff;
+    }
+    .output-actions button:hover {
+      background: var(--primary);
+    }
+    /* SEO, monetization, footer: white and orange only */
+    .seo-section {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 1.5rem;
+      margin: 2.5rem auto;
+      max-width: var(--max-width);
+      font-family: 'Inter', Arial, sans-serif;
+    }
+    .seo-section h2 {
+      color: var(--accent);
+      margin-top: 0;
+      font-size: 1.25rem;
+      font-weight: 700;
+      font-family: 'Playfair Display', serif;
+    }
+    .monetization-banner {
+      background: #fff6e4;
+      border: 1px solid #ffd8b3;
+      border-radius: 10px;
+      padding: 1.2rem 1.2rem;
+      text-align: center;
+      color: #ff7043;
+      font-size: 1.03rem;
+      box-shadow: 0 2px 8px #ffb26b0a;
+      margin: 2rem 0 0.5rem 0;
+    }
+    .donate-links a {
+      background: #fff3e4;
+      color: #ff7043;
+      border-radius: 6px;
+      padding: 0.5rem 1.2rem;
+      font-size: 1rem;
+      font-weight: 600;
+      text-decoration: none;
+      border: 1px solid #ffd684;
+      transition: background 0.14s;
+    }
+    .donate-links a:hover {
+      background: #ffe1be;
+    }
+    footer {
+      margin-top: auto;
+      width: 100%;
+      background: var(--surface);
+      padding: 1.1rem 0;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 1rem;
+      color: var(--muted);
+      font-family: 'Inter', Arial, sans-serif;
+    }
+    @media (max-width: 950px) {
+      .tool-section { max-width: 99vw; border-radius: 0; }
+    }
+    @media (max-width: 767px) {
+      .site-header, .hero-bg, .features, .seo-section, .tool-section-card {
+        padding-left: 0;
+        padding-right: 0;
+      }
+      .hero-overlay {
+        padding: 1.1rem 0.3rem 1rem 0.3rem;
+        margin: 1.2rem 0;
+      }
+      .site-header {
+        padding: 0 0.6rem;
+      }
+      .tool-section-card {
+        padding: 1.3rem 0 1.2rem 0;
+      }
+      .tool-section { padding: 1.2rem 0.3rem 1.2rem 0.3rem; }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+</head>
+<body>
+  <!-- Fixed header with logo + name left -->
+  <header class="site-header">
+    <div class="site-brand">
+      <div class="site-logo">
+        <!-- Premium food icon (fork & plate) SVG -->
+        <svg viewBox="0 0 32 32" fill="none">
+          <circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="2" fill="#fff"/>
+          <rect x="8.5" y="8" width="2" height="14" rx="1" fill="currentColor"/>
+          <rect x="12.5" y="8" width="2" height="14" rx="1" fill="currentColor"/>
+          <rect x="11" y="14" width="7" height="2" rx="1" fill="#ffb26b"/>
+          <ellipse cx="22.5" cy="16" rx="3.5" ry="7" stroke="#ff7043" stroke-width="2" fill="#fff"/>
+        </svg>
+      </div>
+      <span class="site-name">Pantry Cook</span>
+    </div>
+  </header>
+  <!-- Hero section with food background image -->
+  <section class="hero-bg">
+    <div class="hero-overlay">
+      <h1 class="hero-title">Pantry Cook</h1>
+      <div class="hero-subtitle">
+        The fastest way to turn ingredients into a step-by-step, parallelized kitchen plan.<br>No login. No servers. 100% privacy.
+      </div>
+    </div>
+  </section>
+  <!-- Features -->
+  <section class="features" aria-label="Pantry Cook Features">
+    <div class="feature">
+      <h3>Instant Cook Plan</h3>
+      <p>Paste your pantry ingredients or scan via photo. Get a prioritized, timed, printable cooking schedule — all in one page.</p>
+    </div>
+    <div class="feature">
+      <h3>Parallel Step Scheduler</h3>
+      <p>Smartly times steps so you can handle multiple kitchen tasks at once for maximum efficiency.</p>
+    </div>
+    <div class="feature">
+      <h3>Offline & Private</h3>
+      <p>Works entirely in your browser. No accounts, no servers, no tracking. Your data never leaves your device.</p>
+    </div>
+    <div class="feature">
+      <h3>Shopping Gap Detection</h3>
+      <p>Identifies missing ingredients in your pantry and generates a concise shopping list.</p>
+    </div>
+    <div class="feature">
+      <h3>Export & Print</h3>
+      <p>Download your plan as text or print a handy checklist for your kitchen workflow.</p>
+    </div>
+  </section>
+  <!-- Tool section: glowing end-to-end card -->
+  <section class="tool-section-card">
+    <div class="tool-section" aria-label="Pantry Cook Tool">
+      <h2>Build Your Kitchen Plan</h2>
+      <form id="pantry-form" autocomplete="off">
+        <div class="form-group">
+          <label for="ingredients">Enter Ingredients (one per line):</label>
+          <textarea id="ingredients" placeholder="e.g. chicken breast&#10;rice&#10;broccoli" required></textarea>
+        </div>
+        <div class="ocr-upload">
+          <label for="ocr-upload-input" class="ocr-label" tabindex="0">Scan Ingredients (Photo OCR)</label>
+          <input type="file" id="ocr-upload-input" accept="image/*">
+          <span id="ocr-status" style="font-size:0.98em;color:var(--muted);"></span>
+        </div>
+        <div class="slider-group">
+          <label for="servings">Servings:</label>
+          <input type="range" id="servings" min="1" max="10" value="2">
+          <span id="servings-val">2</span>
+          <label for="time">Max Time (min):</label>
+          <input type="range" id="time" min="10" max="120" value="30" step="5">
+          <span id="time-val">30</span>
+        </div>
+        <div class="actions">
+          <button type="submit">Generate Cook Plan</button>
+          <button type="button" id="clear-btn" style="background:#fff3e4;color:#ff7043;">Clear</button>
+        </div>
+      </form>
+      <div id="output" class="output-section" style="display:none;">
+        <h3>Your Cook Plan</h3>
+        <pre id="plan-output"></pre>
+        <div class="output-actions">
+          <button id="print-btn">Print</button>
+          <button id="export-btn">Export to Text</button>
+        </div>
+        <div id="shopping-gap" style="margin-top:1.1rem;"></div>
+        <div id="checklist" style="margin-top:0.9rem;"></div>
+      </div>
+    </div>
+  </section>
+  <!-- SEO/Monetization sections -->
+  <section class="seo-section" id="why-pantry-cook">
+    <h2>Why Pantry Cook? The Smarter Way to Use What You Have</h2>
+    <p>
+      Pantry Cook was built for home cooks who want to make the most of what’s already in their kitchen. Unlike typical recipe sites that require you to search, sign up, or sift through ads, Pantry Cook turns your pantry list into a practical, step-by-step cooking plan — with precise timing so everything finishes together. No more juggling recipes or guessing what to make. Just real results, instantly.
+    </p>
+    <ul>
+      <li>Save money by using what you already own — and spot missing items before you shop.</li>
+      <li>Works offline: perfect for privacy-minded cooks and limited-connectivity kitchens.</li>
+      <li>Print or export your plan for easy kitchen workflow.</li>
+    </ul>
+  </section>
+  <section class="seo-section" id="how-it-works">
+    <h2>How Pantry Cook Works</h2>
+    <p>
+      Enter your available ingredients or use the built-in OCR to scan a photo of your pantry or fridge. Pantry Cook uses a local recipe database and a scheduling algorithm to build a custom recipe plan. You’ll get a prioritized, parallelized timeline (so you can do multiple things at once), a checklist, and a one-line shopping gap for missing items — all instantly, all in your browser.
+    </p>
+    <ul>
+      <li>No account or cloud required — everything runs locally for speed and privacy.</li>
+      <li>Great for meal prep, weeknight dinners, or last-minute cooking inspiration.</li>
+      <li>Supports export and print so you can follow your plan your way.</li>
+    </ul>
+  </section>
+  <section class="seo-section" id="pantry-cook-for-families">
+    <h2>Who Should Use Pantry Cook?</h2>
+    <p>
+      Pantry Cook is perfect for busy families, meal preppers, students, or anyone who wants to turn ingredients into dinner — fast. Whether you’re trying to minimize food waste, eat healthier, or just get dinner on the table with less stress, Pantry Cook helps you cook smarter.
+    </p>
+    <ul>
+      <li>Home cooks seeking fast meal ideas from available ingredients.</li>
+      <li>Minimalist chefs who value privacy and efficiency.</li>
+      <li>Anyone who wants a free, powerful cook planning app — no strings attached.</li>
+    </ul>
+  </section>
+  <div class="monetization-banner">
+    <b>Pantry Cook is free, local, and privacy-first.</b> If this tool saved you time or helped use up your pantry, consider supporting our work ❤️
+    <div class="donate-links">
+      <a href="https://www.buymeacoffee.com/" target="_blank" rel="noopener">Buy Me a Coffee</a>
+      <a href="https://ko-fi.com/" target="_blank" rel="noopener">Ko-fi</a>
+      <a href="https://www.patreon.com/" target="_blank" rel="noopener">Patreon</a>
+    </div>
+  </div>
+  <footer>
+    &copy; 2025 Pantry Cook &middot; Made with ❤️ for home cooks. &middot;
+    <a class="button-link" href="https://your-main-saas.com/?utm_source=pantrycook&utm_medium=footer" target="_blank" rel="noopener" style="background:#fff5e3;color:#ff7043;font-weight:600;padding:0.25em 0.8em;">Need advanced meal planning? Try MealTrack Pro →</a>
+  </footer>
+  <!-- Pantry Cook script (unchanged) -->
+  <script>
+    const RECIPE_DB = [
+      {
+        name: "Chicken & Rice Bowl",
+        ingredients: ["chicken breast", "rice", "broccoli", "soy sauce", "oil"],
+        steps: [
+          {desc: "Start rice in pot with water.", time: 0, duration: 25},
+          {desc: "Chop broccoli & chicken.", time: 0, duration: 8, parallel: true},
+          {desc: "Sauté chicken in pan (add oil).", time: 8, duration: 10},
+          {desc: "Add broccoli to pan, stir-fry.", time: 18, duration: 7},
+          {desc: "Combine cooked rice, chicken, broccoli. Season.", time: 25, duration: 3}
+        ]
+      },
+      {
+        name: "Vegetarian Stir-Fry",
+        ingredients: ["rice", "broccoli", "carrot", "soy sauce", "oil"],
+        steps: [
+          {desc: "Start rice in pot with water.", time: 0, duration: 25},
+          {desc: "Chop vegetables.", time: 0, duration: 7, parallel: true},
+          {desc: "Stir-fry vegetables in oil.", time: 7, duration: 10},
+          {desc: "Combine rice and vegetables. Season.", time: 25, duration: 2}
+        ]
+      },
+      {
+        name: "Simple Omelette",
+        ingredients: ["eggs", "milk", "oil", "salt", "pepper"],
+        steps: [
+          {desc: "Beat eggs with milk, salt, pepper.", time: 0, duration: 2},
+          {desc: "Heat oil in pan.", time: 0, duration: 2, parallel: true},
+          {desc: "Pour eggs in, cook on low.", time: 2, duration: 4},
+          {desc: "Fold and serve.", time: 6, duration: 1}
+        ]
+      }
+    ];
+    function matchRecipe(ingredients) {
+      ingredients = ingredients.map(i => i.trim().toLowerCase()).filter(Boolean);
+      let best = null, bestCount = 0;
+      for (const recipe of RECIPE_DB) {
+        let count = recipe.ingredients.filter(ri => ingredients.includes(ri)).length;
+        if (count > bestCount) {
+          best = recipe;
+          bestCount = count;
+        }
+      }
+      return best;
+    }
+    function findMissing(recipe, ingredients) {
+      return recipe.ingredients.filter(ri => !ingredients.includes(ri));
+    }
+    function buildPlan(recipe, servings, maxTime) {
+      let plan = `Recipe: ${recipe.name} (${servings} serving${servings>1?'s':''})\n\n`;
+      plan += 'Step-by-step Timeline:\n';
+      recipe.steps.forEach((s, idx) => {
+        let t = s.time;
+        let end = t + s.duration;
+        plan += `${idx+1}. [${t}-${end} min] ${s.desc}\n`;
+      });
+      plan += "\nTips: Steps with the same start time can be done in parallel.\n";
+      return plan;
+    }
+    function buildChecklist(recipe) {
+      return `<b>Kitchen Checklist:</b><ul>${
+        recipe.steps.map(s => `<li>${s.desc}</li>`).join('')
+      }</ul>`;
+    }
+    document.getElementById('print-btn').onclick = () => window.print();
+    document.getElementById('export-btn').onclick = () => {
+      const text = document.getElementById('plan-output').textContent;
+      const blob = new Blob([text], {type: 'text/plain'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'pantry-cook-plan.txt';
+      a.click();
+    };
+    document.getElementById('servings').oninput = function() {
+      document.getElementById('servings-val').textContent = this.value;
+    };
+    document.getElementById('time').oninput = function() {
+      document.getElementById('time-val').textContent = this.value;
+    };
+    document.getElementById('ocr-upload-input').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      document.getElementById('ocr-status').textContent = 'Scanning...';
+      Tesseract.recognize(file, 'eng').then(({ data: { text } }) => {
+        document.getElementById('ingredients').value = text.trim();
+        document.getElementById('ocr-status').textContent = 'Pasted from photo!';
+      }).catch(() => {
+        document.getElementById('ocr-status').textContent = 'OCR failed.';
+      });
+    });
+    document.querySelector('.ocr-label').onclick = function() {
+      document.getElementById('ocr-upload-input').click();
+    };
+    document.getElementById('pantry-form').onsubmit = function(e) {
+      e.preventDefault();
+      const ingredients = document.getElementById('ingredients').value.trim().split('\n');
+      const servings = parseInt(document.getElementById('servings').value, 10);
+      const maxTime = parseInt(document.getElementById('time').value, 10);
+      const recipe = matchRecipe(ingredients);
+      if (!recipe) {
+        document.getElementById('output').style.display = 'block';
+        document.getElementById('plan-output').textContent = "No suitable recipe found in local DB. Try adding more common ingredients!";
+        document.getElementById('shopping-gap').innerHTML = "";
+        document.getElementById('checklist').innerHTML = "";
+        return;
+      }
+      document.getElementById('plan-output').textContent = buildPlan(recipe, servings, maxTime);
+      const missing = findMissing(recipe, ingredients.map(i=>i.trim().toLowerCase()));
+      document.getElementById('shopping-gap').innerHTML = missing.length ? `<b>Shopping Gap:</b> ${missing.join(', ')}` : '';
+      document.getElementById('checklist').innerHTML = buildChecklist(recipe);
+      document.getElementById('output').style.display = 'block';
+    };
+    document.getElementById('clear-btn').onclick = function() {
+      document.getElementById('ingredients').value = '';
+      document.getElementById('output').style.display = 'none';
+      document.getElementById('ocr-status').textContent = '';
+    };
+  </script>
+</body>
+</html>
