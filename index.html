@@ -385,7 +385,7 @@
           <ellipse cx="22.5" cy="16" rx="3.5" ry="7" stroke="#ff7043" stroke-width="2" fill="#fff"/>
         </svg>
       </div>
-      <span class="site-name">Pantry Cook</span>
+      <span class="site-name">PantryBit</span>
     </div>
   </header>
   <!-- Hero section with food background image -->
@@ -624,6 +624,15 @@
       document.getElementById('output').style.display = 'none';
       document.getElementById('ocr-status').textContent = '';
     };
+    async function generateRecipe(ingredients) {
+  const res = await fetch("https://pantrybit.georgec-ignite.workers.dev/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ingredients })
+  });
+  const recipe = await res.json();
+  displayRecipe(recipe);
+}
   </script>
 </body>
 </html>
