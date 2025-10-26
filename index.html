@@ -600,39 +600,86 @@
     document.querySelector('.ocr-label').onclick = function() {
       document.getElementById('ocr-upload-input').click();
     };
-    document.getElementById('pantry-form').onsubmit = function(e) {
-      e.preventDefault();
-      const ingredients = document.getElementById('ingredients').value.trim().split('\n');
-      const servings = parseInt(document.getElementById('servings').value, 10);
-      const maxTime = parseInt(document.getElementById('time').value, 10);
-      const recipe = matchRecipe(ingredients);
-      if (!recipe) {
-        document.getElementById('output').style.display = 'block';
-        document.getElementById('plan-output').textContent = "No suitable recipe found in local DB. Try adding more common ingredients!";
-        document.getElementById('shopping-gap').innerHTML = "";
-        document.getElementById('checklist').innerHTML = "";
-        return;
-      }
-      document.getElementById('plan-output').textContent = buildPlan(recipe, servings, maxTime);
-      const missing = findMissing(recipe, ingredients.map(i=>i.trim().toLowerCase()));
-      document.getElementById('shopping-gap').innerHTML = missing.length ? `<b>Shopping Gap:</b> ${missing.join(', ')}` : '';
-      document.getElementById('checklist').innerHTML = buildChecklist(recipe);
-      document.getElementById('output').style.display = 'block';
-    };
-    document.getElementById('clear-btn').onclick = function() {
-      document.getElementById('ingredients').value = '';
-      document.getElementById('output').style.display = 'none';
-      document.getElementById('ocr-status').textContent = '';
-    };
-    async function generateRecipe(ingredients) {
-  const res = await fetch("https://pantrybit.georgec-ignite.workers.dev/", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ingredients })
-  });
-  const recipe = await res.json();
-  displayRecipe(recipe);
+    <script>
+document.getElementById('pantry-form').onsubmit = async function(e) {
+  e.preventDefault();
+
+  const ingredients = document.getElementById('ingredients').value
+    .trim()
+    .split('\n')
+    .map(i => i.trim().toLowerCase())
+    .filter(i => i);
+
+  const servings = parseInt(document.getElementById('servings').value, 10);
+  const maxTime = parseInt(document.getElementById('time').value, 10);
+  const planOutput = document.getElementById('plan-output');
+  const outputDiv = document.getElementById('output');
+  const shoppingGapDiv = document.getElementById('shopping-gap');
+  const checklistDiv = document.getElementById('checklist');
+
+  planOutput.textContent = "Finding the best recipe...";
+  outputDiv.style.display = 'block';
+
+  // --- 1️⃣ Try local recipe match first ---
+  let recipe = matchRecipe(ingredients);
+
+  if (recipe) {
+    planOutput.textContent = buildPlan(recipe, servings, maxTime);
+    const missing = findMissing(recipe, ingredients);
+    shoppingGapDiv.innerHTML = missing.length ? `<b>Shopping Gap:</b> ${missing.join(', ')}` : '';
+    checklistDiv.innerHTML = buildChecklist(recipe);
+    return;
+  }
+
+  // --- 2️⃣ Fallback: Cloudflare Worker AI ---
+  planOutput.textContent = "No local recipe found. Asking PantryBit AI...";
+  try {
+    const res = await fetch("https://pantrybit.georgec-ignite.workers.dev/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ingredients })
+    });
+
+    const data = await res.json();
+
+    if (data.recipe) {
+      planOutput.textContent = data.recipe;
+    } else if (data.choices?.[0]?.message?.content) {
+      // Handle OpenAI-style response
+      planOutput.textContent = data.choices[0].message.content;
+    } else {
+      planOutput.textContent = "AI returned no recipe. Try different ingredients.";
+    }
+  } catch (err) {
+    planOutput.textContent = "Error contacting PantryBit AI.";
+    console.error("Cloudflare Worker error:", err);
+  }
+};
+
+// --- Helper: Local recipe matcher ---
+function matchRecipe(ingredients) {
+  const recipes = [
+    { name: "Spaghetti Bolognese", ingredients: ["spaghetti", "tomato", "mince", "onion", "garlic"], time: 40 },
+    { name: "Omelette", ingredients: ["egg", "milk", "cheese"], time: 10 },
+    { name: "Fried Rice", ingredients: ["rice", "egg", "soy sauce", "carrot", "peas"], time: 25 }
+  ];
+  return recipes.find(r => r.ingredients.every(i => ingredients.includes(i))) || null;
 }
-  </script>
+
+// --- Helper: Build cook plan ---
+function buildPlan(recipe, servings, maxTime) {
+  return `🍳 ${recipe.name}\n\nTime: ${recipe.time} min\nServings: ${servings}\nMax Allowed: ${maxTime} min\n\nStart by prepping ingredients.`;
+}
+
+// --- Helper: Find missing items ---
+function findMissing(recipe, ingredients) {
+  return recipe.ingredients.filter(i => !ingredients.includes(i));
+}
+
+// --- Helper: Build checklist ---
+function buildChecklist(recipe) {
+  return `<ul>${recipe.ingredients.map(i => `<li><input type='checkbox'> ${i}</li>`).join('')}</ul>`;
+}
+</script>
 </body>
 </html>
