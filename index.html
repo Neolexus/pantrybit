@@ -507,179 +507,88 @@
   </footer>
   <!-- PantryBit script (unchanged) -->
   <script>
-    const RECIPE_DB = [
-      {
-        name: "Chicken & Rice Bowl",
-        ingredients: ["chicken breast", "rice", "broccoli", "soy sauce", "oil"],
-        steps: [
-          {desc: "Start rice in pot with water.", time: 0, duration: 25},
-          {desc: "Chop broccoli & chicken.", time: 0, duration: 8, parallel: true},
-          {desc: "Sauté chicken in pan (add oil).", time: 8, duration: 10},
-          {desc: "Add broccoli to pan, stir-fry.", time: 18, duration: 7},
-          {desc: "Combine cooked rice, chicken, broccoli. Season.", time: 25, duration: 3}
-        ]
-      },
-      {
-        name: "Vegetarian Stir-Fry",
-        ingredients: ["rice", "broccoli", "carrot", "soy sauce", "oil"],
-        steps: [
-          {desc: "Start rice in pot with water.", time: 0, duration: 25},
-          {desc: "Chop vegetables.", time: 0, duration: 7, parallel: true},
-          {desc: "Stir-fry vegetables in oil.", time: 7, duration: 10},
-          {desc: "Combine rice and vegetables. Season.", time: 25, duration: 2}
-        ]
-      },
-      {
-        name: "Simple Omelette",
-        ingredients: ["eggs", "milk", "oil", "salt", "pepper"],
-        steps: [
-          {desc: "Beat eggs with milk, salt, pepper.", time: 0, duration: 2},
-          {desc: "Heat oil in pan.", time: 0, duration: 2, parallel: true},
-          {desc: "Pour eggs in, cook on low.", time: 2, duration: 4},
-          {desc: "Fold and serve.", time: 6, duration: 1}
-        ]
-      }
-    ];
-    function matchRecipe(ingredients) {
-      ingredients = ingredients.map(i => i.trim().toLowerCase()).filter(Boolean);
-      let best = null, bestCount = 0;
-      for (const recipe of RECIPE_DB) {
-        let count = recipe.ingredients.filter(ri => ingredients.includes(ri)).length;
-        if (count > bestCount) {
-          best = recipe;
-          bestCount = count;
-        }
-      }
-      return best;
-    }
-    function findMissing(recipe, ingredients) {
-      return recipe.ingredients.filter(ri => !ingredients.includes(ri));
-    }
-    function buildPlan(recipe, servings, maxTime) {
-      let plan = `Recipe: ${recipe.name} (${servings} serving${servings>1?'s':''})\n\n`;
-      plan += 'Step-by-step Timeline:\n';
-      recipe.steps.forEach((s, idx) => {
-        let t = s.time;
-        let end = t + s.duration;
-        plan += `${idx+1}. [${t}-${end} min] ${s.desc}\n`;
-      });
-      plan += "\nTips: Steps with the same start time can be done in parallel.\n";
-      return plan;
-    }
-    function buildChecklist(recipe) {
-      return `<b>Kitchen Checklist:</b><ul>${
-        recipe.steps.map(s => `<li>${s.desc}</li>`).join('')
-      }</ul>`;
-    }
-    document.getElementById('print-btn').onclick = () => window.print();
-    document.getElementById('export-btn').onclick = () => {
-      const text = document.getElementById('plan-output').textContent;
-      const blob = new Blob([text], {type: 'text/plain'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'pantry-cook-plan.txt';
-      a.click();
-    };
-    document.getElementById('servings').oninput = function() {
-      document.getElementById('servings-val').textContent = this.value;
-    };
-    document.getElementById('time').oninput = function() {
-      document.getElementById('time-val').textContent = this.value;
-    };
-    document.getElementById('ocr-upload-input').addEventListener('change', function(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      document.getElementById('ocr-status').textContent = 'Scanning...';
-      Tesseract.recognize(file, 'eng').then(({ data: { text } }) => {
-        document.getElementById('ingredients').value = text.trim();
-        document.getElementById('ocr-status').textContent = 'Pasted from photo!';
-      }).catch(() => {
-        document.getElementById('ocr-status').textContent = 'OCR failed.';
-      });
+  // --- 🧠 OCR + UI Handling ---
+  document.getElementById('print-btn').onclick = () => window.print();
+
+  document.getElementById('export-btn').onclick = () => {
+    const text = document.getElementById('plan-output').textContent;
+    const blob = new Blob([text], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'pantry-cook-plan.txt';
+    a.click();
+  };
+
+  document.getElementById('servings').oninput = function () {
+    document.getElementById('servings-val').textContent = this.value;
+  };
+
+  document.getElementById('time').oninput = function () {
+    document.getElementById('time-val').textContent = this.value;
+  };
+
+  // --- 📸 OCR Scanning (Tesseract.js) ---
+  document.getElementById('ocr-upload-input').addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    document.getElementById('ocr-status').textContent = 'Scanning...';
+    Tesseract.recognize(file, 'eng').then(({ data: { text } }) => {
+      document.getElementById('ingredients').value = text.trim();
+      document.getElementById('ocr-status').textContent = 'Pasted from photo!';
+    }).catch(() => {
+      document.getElementById('ocr-status').textContent = 'OCR failed.';
     });
-    document.querySelector('.ocr-label').onclick = function() {
-      document.getElementById('ocr-upload-input').click();
-    };
-    <script>
-document.getElementById('pantry-form').onsubmit = async function(e) {
-  e.preventDefault();
+  });
 
-  const ingredients = document.getElementById('ingredients').value
-    .trim()
-    .split('\n')
-    .map(i => i.trim().toLowerCase())
-    .filter(i => i);
+  document.querySelector('.ocr-label').onclick = function () {
+    document.getElementById('ocr-upload-input').click();
+  };
 
-  const servings = parseInt(document.getElementById('servings').value, 10);
-  const maxTime = parseInt(document.getElementById('time').value, 10);
-  const planOutput = document.getElementById('plan-output');
-  const outputDiv = document.getElementById('output');
-  const shoppingGapDiv = document.getElementById('shopping-gap');
-  const checklistDiv = document.getElementById('checklist');
+  // --- 🍳 Form Submission (Cloudflare Worker only) ---
+  document.getElementById('pantry-form').onsubmit = async function (e) {
+    e.preventDefault();
 
-  planOutput.textContent = "Finding the best recipe...";
-  outputDiv.style.display = 'block';
+    const ingredients = document.getElementById('ingredients').value
+      .trim()
+      .split('\n')
+      .map(i => i.trim())
+      .filter(i => i);
 
-  // --- 1️⃣ Try local recipe match first ---
-  let recipe = matchRecipe(ingredients);
+    const planOutput = document.getElementById('plan-output');
+    const outputDiv = document.getElementById('output');
 
-  if (recipe) {
-    planOutput.textContent = buildPlan(recipe, servings, maxTime);
-    const missing = findMissing(recipe, ingredients);
-    shoppingGapDiv.innerHTML = missing.length ? `<b>Shopping Gap:</b> ${missing.join(', ')}` : '';
-    checklistDiv.innerHTML = buildChecklist(recipe);
-    return;
+    planOutput.textContent = "Cooking up something smart...";
+    outputDiv.style.display = 'block';
+
+    await generateRecipe(ingredients);
+  };
+
+  // --- 🚀 Call Cloudflare Worker (Groq AI) ---
+  async function generateRecipe(ingredients) {
+    try {
+      const response = await fetch("https://pantrybit.georgec-ignite.workers.dev/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ingredients })
+      });
+
+      const data = await response.json();
+      displayRecipe(data);
+    } catch (error) {
+      document.getElementById('plan-output').textContent = "Error contacting PantryBit AI.";
+      console.error(error);
+    }
   }
 
-  // --- 2️⃣ Fallback: Cloudflare Worker AI ---
-  planOutput.textContent = "No local recipe found. Asking PantryBit AI...";
-  try {
-    const res = await fetch("https://pantrybit.georgec-ignite.workers.dev/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ingredients })
-    });
-
-    const data = await res.json();
-
-    if (data.recipe) {
-      planOutput.textContent = data.recipe;
-    } else if (data.choices?.[0]?.message?.content) {
-      // Handle OpenAI-style response
-      planOutput.textContent = data.choices[0].message.content;
-    } else {
-      planOutput.textContent = "AI returned no recipe. Try different ingredients.";
-    }
-  } catch (err) {
-    planOutput.textContent = "Error contacting PantryBit AI.";
-    console.error("Cloudflare Worker error:", err);
+  // --- 🧾 Display AI Recipe ---
+  function displayRecipe(recipe) {
+    const planOutput = document.getElementById('plan-output');
+    planOutput.textContent =
+      recipe.choices?.[0]?.message?.content ||
+      recipe.recipe ||
+      "No recipe generated.";
+    document.getElementById('output').style.display = 'block';
   }
-};
-
-// --- Helper: Local recipe matcher ---
-function matchRecipe(ingredients) {
-  const recipes = [
-    { name: "Spaghetti Bolognese", ingredients: ["spaghetti", "tomato", "mince", "onion", "garlic"], time: 40 },
-    { name: "Omelette", ingredients: ["egg", "milk", "cheese"], time: 10 },
-    { name: "Fried Rice", ingredients: ["rice", "egg", "soy sauce", "carrot", "peas"], time: 25 }
-  ];
-  return recipes.find(r => r.ingredients.every(i => ingredients.includes(i))) || null;
-}
-
-// --- Helper: Build cook plan ---
-function buildPlan(recipe, servings, maxTime) {
-  return `🍳 ${recipe.name}\n\nTime: ${recipe.time} min\nServings: ${servings}\nMax Allowed: ${maxTime} min\n\nStart by prepping ingredients.`;
-}
-
-// --- Helper: Find missing items ---
-function findMissing(recipe, ingredients) {
-  return recipe.ingredients.filter(i => !ingredients.includes(i));
-}
-
-// --- Helper: Build checklist ---
-function buildChecklist(recipe) {
-  return `<ul>${recipe.ingredients.map(i => `<li><input type='checkbox'> ${i}</li>`).join('')}</ul>`;
-}
 </script>
 </body>
 </html>
